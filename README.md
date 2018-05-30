@@ -52,7 +52,7 @@ gcloud docker -- push gcr.io/$GOOGLE_CLOUD_PROJECT/$IMAGE_TAG
 ## create deployment
 
 ```
-envsubst < k8s-deployment.yml | kubectl apply -f -
+envsubst < k8s-deployment.yaml | kubectl apply -f -
 ```
 
 ## current state of stats
@@ -66,7 +66,7 @@ php-apache-545b7c6bb5-mlh22   9m           6Mi
 ## apply autoscaling
 
 ```
-kubectl apply autoscale.yml
+kubectl apply autoscale.yaml
 ```
 
 ## fire some load 
