@@ -52,7 +52,7 @@ gcloud docker -- push gcr.io/$GOOGLE_CLOUD_PROJECT/$IMAGE_TAG
 ## create deployment
 
 ```
-envsubst < k8s-deployment.yaml | kubectl apply -f -
+envsubst < k8s-deployment.template.yaml | kubectl apply -f -
 ```
 
 ## current state of stats
