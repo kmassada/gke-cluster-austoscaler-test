@@ -18,9 +18,24 @@ export CLUSTER_MAME=test-autoscaler
 gcloud config set project $GOOGLE_CLOUD_PROJECT
 gcloud config set compute/zone $COMPUTE_ZONE
 
-gcloud container clusters create $CLUSTER_MAME \
+gcloud iam service-accounts create  $NODE_SA_NAME --display-name "Node Service Account"
+export NODE_SA_EMAIL=`gcloud iam service-accounts list --format='value(email)' --filter='displayName:Node Service Account'`
+export PROJECT=`gcloud config get-value project`
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT --member=serviceAccount:${NODE_SA_EMAIL} --role=roles/monitoring.metricWriter
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT --member=serviceAccount:${NODE_SA_EMAIL} --role=roles/monitoring.viewer
+gcloud projects add-iam-policy-binding $GOOGLE_CLOUD_PROJECT --member=serviceAccount:${NODE_SA_EMAIL} --role=roles/logging.logWriter
+gcloud config set container/new_scopes_behavior true
+gcloud config set container/use_v1_api false
+
+gcloud beta container clusters create $CLUSTER_MAME \
+--service-account=$NODE_SA_EMAIL \
+--workload-metadata-from-node=SECURE \
+--zone=$COMPUTE_ZONE \
+--cluster-version=1.10 \
 --enable-autoscaling \
---num-nodes $NUM_NODES  --min-nodes $MIN_NODES --max-nodes $MAX_NODES
+--num-nodes $NUM_NODES \
+--min-nodes $MIN_NODES \
+--max-nodes $MAX_NODES
 
 gcloud container clusters get-credentials $CLUSTER_MAME
 ```
@@ -28,6 +43,7 @@ gcloud container clusters get-credentials $CLUSTER_MAME
 ## create images
 
 ```
+cd autoscaler/
 docker build -t $IMAGE_TAG .
 docker tag $IMAGE_TAG gcr.io/$GOOGLE_CLOUD_PROJECT/$IMAGE_TAG
 gcloud docker -- push gcr.io/$GOOGLE_CLOUD_PROJECT/$IMAGE_TAG
@@ -36,7 +52,7 @@ gcloud docker -- push gcr.io/$GOOGLE_CLOUD_PROJECT/$IMAGE_TAG
 ## create deployment
 
 ```
-envsubst < deployment.yml | kubectl apply -f -
+envsubst < k8s-deployment.yml | kubectl apply -f -
 ```
 
 ## current state of stats

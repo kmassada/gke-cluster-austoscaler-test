@@ -11,7 +11,3 @@ spec:
     kind: Deployment
     name: php-apache
   targetCPUUtilizationPercentage: 50
-status:
-  currentReplicas: 0
-  desiredReplicas: 0
-error: no objects passed to a
